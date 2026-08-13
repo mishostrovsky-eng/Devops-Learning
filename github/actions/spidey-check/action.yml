@@ -1,0 +1,8 @@
+name: 'Tests'
+description: 'A custom local action that prints a test message to logs'
+runs:
+  using: 'composite'
+  steps:
+    - name: Print custom test message
+      run: echo "🕷️ Spidey Custom Action is running successfully! All tests passed."
+      shell: bash
