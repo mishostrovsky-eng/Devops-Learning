@@ -175,3 +175,11 @@ h1 {
     justify-content: center;
     text-align: center;
 }
+     
+.spidey-card {
+    animation: pulseGlow 3s infinite alternate;
+}
+@keyframes pulseGlow {
+    0% { border-color: #d90429; }
+    100% { border-color: #6ab8ca; }
+}
