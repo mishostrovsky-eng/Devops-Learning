@@ -1,33 +1,39 @@
 name: Spidey Live CD Simulation # שם ה-Workflow שיופיע בממשק של GitHub Actions
 
 on:
-  push:
-    branches: [ "main" ]    # ירוץ אוטומטית בכל פעם שמתבצע מיזוג (push) ל-main
-  workflow_dispatch:        # מאפשר גם הפעלה ידנית מתי שתרצי דרך ממשק ה-Actions בגיטהאב
+  pull_request:
+    branches: [ "main" ]    # יופעל כשיש פעילות על PR לענף main
+    types: [ closed ]       # יופעל אך ורק כאשר ה-PR נסגר
+  workflow_dispatch:        # מאפשר גם הפעלה ידנית מתוך ממשק ה-Actions
 
 jobs:
   deploy-and-expose:
-    runs-on: ubuntu-latest # מגדיר ששרת הירטואלי (Runner) של לינוקס יריץ את המשימה
+    # תנאי המוודא שה-CD ירוץ רק אם ה-PR אכן אושר (Merged) או שהופעל ידנית
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    
+    runs-on: ubuntu-latest # מגדיר ששרת וירטואלי (Runner) של לינוקס יריץ את המשימה
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # שלב שמושך את קוד המקור של הריפוזיטורי אל תוך השרת הווירטואלי
+        uses: actions/checkout@v4 # שלב שמושך את קוד המקור אל השרת הווירטואלי
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4 # מתקין את סביבת העבודה של Node.js על הרנר
+        uses: actions/setup-node@v4 # מתקין את סביבת העבודה של Node.js
         with:
-          node-version: '20' # מגדיר את גרסת Node המבוקשת (גרסה 20)
+          node-version: '20' # מגדיר את גרסת Node (גרסה 20)
 
       - name: Build Docker images
-        run: docker compose build # בונה את אימג'י הדוקר של הפרונטאנד והבקאנד מתוך קובצי ה-Dockerfile
+        run: docker compose build # בונה את אימג'י הדוקר של הפרונטאנד והבקאנד
 
       - name: Start the application stack
-        run: docker compose up -d # מריץ את כל הקונטיינרים ברקע (detached mode) בעזרת הדוקר-קומפוז
+        run: docker compose up -d # מריץ את כל הקונטיינרים ברקע בעזרת הדוקר-קומפוז
 
       - name: Wait for services to be ready
-        run: sleep 5 # ממתין 5 שניות כדי לתת לשירותים ולדאטה-בייס זמן לעלות ולהתייצב
+        run: sleep 5 # ממתין 5 שניות כדי שהשירותים והדאטה-בייס יעלו ויתייצבו
 
       - name: Expose via Ngrok and Keep Alive
+        env:
+          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }} # טוען את מפתח האבטחה האישי מתוך ה-Secrets של הריפוזיטורי
         run: |
           echo "🌐 Installing ngrok..."
           # הורדת מפתח האבטחה של ngrok והוספתו למערכת
@@ -36,18 +42,21 @@ jobs:
           # הוספת המאגר של ngrok לרשימת מקורות ההתקנה בלינוקס
           echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
           
-          # עדכון רשימת החבילות והתקנת ngrok בפועל על הרנר
+          # עדכון רשימת החבילות והתקנת ngrok בפועל
           sudo apt update && sudo apt install -y ngrok
           
-          # הפעלת ngrok ברקע שיוצר קישור ציבורי לפורט 80 (שבו יושב הפרונטאנד)
+          # חיבור ה-ngrok באמצעות הטוקן האישי
+          ngrok config add-authtoken $NGROK_AUTH_TOKEN
+          
+          # הפעלת ngrok ברקע שיוצר קישור ציבורי לפורט 80
           ngrok http 80 &
           
           echo "⏳ The environment is live! Check the ngrok URL above in the logs."
           echo "You have 5 minutes to test it from your phone."
           
-          # השהייה של 5 דקות (300 שניות) כדי שהסביבה תישאר באוויר ותוכלי להיכנס מהטלפון
+          # השהייה של 5 דקות כדי שהסביבה תישאר באוויר ותוכלי להיכנס מהטלפון
           sleep 300
 
       - name: Stop the application stack
-        if: always() # ירוץ תמיד, גם אם השלבים הקודמים הצליחו וגם אם נכשלו
+        if: always() # ירוץ תמיד, גם אם השלבים הצליחו וגם אם נכשלו
         run: docker compose down # מכבה ומוריד את כל הקונטיינרים כדי לנקות את השרת בסיום
