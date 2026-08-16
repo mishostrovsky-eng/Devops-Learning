@@ -6,8 +6,6 @@ services:
       - "3000:3000"
   
   frontend:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./frontend:/usr/share/nginx/html
+      build: ./frontend
+      ports:
+        - "80:80"
