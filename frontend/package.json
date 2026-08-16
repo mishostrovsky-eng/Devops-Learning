@@ -1,0 +1,14 @@
+{
+  "name": "spidey-battle-game",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "echo 'Building project...' && mkdir -p dist && cp index.html app.js style.css dist/",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
