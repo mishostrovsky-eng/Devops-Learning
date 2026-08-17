@@ -1,10 +1,9 @@
 FROM nginx:alpine
 
-# מעתיק רק את קבצי האתר הסטטיים לתיקיית היעד
-COPY index.html style.js app.js /usr/share/nginx/html/
-# (או לחלופין אם יש תיקייה שלמה, תדאגי שקובץ ה-conf לא יועתק לשם)
+# מעתיק את כל הקבצים מתיקיית ה-frontend אל תיקיית הבסיס של Nginx
+COPY . /usr/share/nginx/html/
 
-# מעתיק את קובץ ההגדרות של Nginx למקום המיועד לו
+# מעתיק את קובץ הקונפיגורציה אל תיקיית ההגדרות של Nginx כדי שידרוס את ברירת המחדל
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
