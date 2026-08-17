@@ -1,68 +1,25 @@
-name: Spidey Live CD Simulation # שם ה-Workflow שיופיע בממשק של GitHub Actions
+name: Spidey Live CD Simulation
 
 on:
   pull_request:
     branches: [ "main" ]    # יופעל כשיש פעילות על PR לענף main
     types: [ closed ]       # יופעל אך ורק כאשר ה-PR נסגר
-  workflow_dispatch:        # מאפשר גם הפעלה ידנית מתוך ממשק ה-Actions
+  workflow_dispatch:        # מאפשר הפעלה ידנית מתוך ממשק ה-Actions בגיטהאב
 
 jobs:
-  deploy-and-expose:
-    # תנאי המוודא שה-CD ירוץ רק אם ה-PR אכן אושר (Merged) או שהופעל ידנית
+  deploy-to-production:
+    # ירוץ רק אם ה-PR אכן אושר ונכנס (Merged) או שהופעל ידנית דרך הממשק
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     
-    runs-on: ubuntu-latest # מגדיר ששרת וירטואלי (Runner) של לינוקס יריץ את המשימה
+    runs-on: self-hosted # מריץ את הפקודות ישירות על השרת המקומי שלך
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # שלב שמושך את קוד המקור אל השרת הווירטואלי
+        uses: actions/checkout@v4 # מוריד את הקוד המעודכן לשרת
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4 # מתקין את סביבת העבודה של Node.js
-        with:
-          node-version: '20' # מגדיר את גרסת Node (גרסה 20)
-
-      - name: Build Docker images
-        run: docker compose build # בונה את אימג'י הדוקר של הפרונטאנד והבקאנד
-
-      - name: Start the application stack
-        run: docker compose up -d # מריץ את כל הקונטיינרים ברקע בעזרת הדוקר-קומפוז
-
-      - name: Wait for services to be ready
-        run: sleep 5 # ממתין 5 שניות כדי שהשירותים והדאטה-בייס יעלו ויתייצבו
-
-      - name: Expose via Ngrok and Keep Alive
-        env:
-          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }} # טוען את מפתח האבטחה האישי מתוך ה-Secrets של הריפוזיטורי
+      - name: Deploy with Docker Compose
         run: |
-          echo "🌐 Installing ngrok..."
-          # הורדת מפתח האבטחה של ngrok והוספתו למערכת
-          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-          
-          # הוספת המאגר של ngrok לרשימת מקורות ההתקנה בלינוקס
-          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-          
-          # עדכון רשימת החבילות והתקנת ngrok בפועל
-          sudo apt update && sudo apt install -y ngrok
-          
-          # חיבור ה-ngrok באמצעות הטוקן האישי
-          ngrok config add-authtoken $NGROK_AUTH_TOKEN
-          
-          # הפעלת ngrok ושמירת כל הלוגים לקובץ
-          ngrok http 80 > ngrok.log 2>&1 &
-          
-          # ממתינים 6 שניות כדי לוודא ש-ngrok התחבר לענן ויצר כתובת
-          sleep 6
-          
-          echo "🔗 Printing full Ngrok logs to find your public URL:"
-          # הצגה מלאה של קובץ הלוג כדי לראות את הכתובת מול העיניים
-          cat ngrok.log
-          
-          echo "⏳ The environment is live! You have 5 minutes to test it from your phone."
-          
-          # השהייה של 5 דקות כדי שהסביבה תישאר באוויר ותוכלי להיכנס מהטלפון
-          sleep 300
-
-      - name: Stop the application stack
-        if: always() # ירוץ תמיד, גם אם השלבים הצליחו וגם אם נכשלו
-        run: docker compose down # מכבה ומוריד את כל הקונטיינרים כדי לנקות את השרת בסיום
+          echo "🚀 מתחיל תהליך פריסה לשרת..."
+          docker compose down
+          docker compose up -d --build
+          echo "✅ הפריסה הסתיימה בהצלחה! האפליקציה באוויר."
