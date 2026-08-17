@@ -9,7 +9,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the Spidey Backend Server! 🕷️' });
 });
 
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is up and running!', timestamp: new Date() });
 });
 
