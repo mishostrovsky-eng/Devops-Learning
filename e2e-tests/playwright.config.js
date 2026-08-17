@@ -5,7 +5,7 @@ module.exports = defineConfig({
   timeout: 30000,
   reporter: 'html', // <-- הוספת שורה זו
   use: {
-    baseURL: 'http://localhost',
+    baseURL: 'http://localhost:8080',
     headless: true,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
