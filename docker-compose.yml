@@ -8,5 +8,5 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "8080:80" # משйיך לפורט 8080 כדי להימנע מבעיות הרשאות במק
+      - "8080:80" 
     restart: always
