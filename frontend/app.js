@@ -10,9 +10,9 @@ function App() {
     // State לשמירת הנתונים מה-Backend
     const [backendStatus, setBackendStatus] = React.useState('בודק חיבור לשרת...');
 
-    // התחברות ל-Backend ברגע שהאפליקציה עולה
+    // התחברות ל-Backend ברגע שהאפליקציה עולה (באמצעות נתיב יחסי לתמיכה ב-Ngrok)
     React.useEffect(() => {
-        fetch('http://localhost:3000/api/health')
+        fetch('/api/health')
             .then(response => response.json())
             .then(data => {
                 console.log("Data from Backend:", data);
