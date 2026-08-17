@@ -1,0 +1,18 @@
+name: Test Self-Hosted Runner
+
+on:
+  workflow_dispatch: # מאפשר לנו להפעיל את הצינור ידנית מתוך האתר של גיטהאב
+
+jobs:
+  run-on-my-computer:
+    runs-on: self-hosted # כאן אנחנו אומרים לו לרוץ על המחשב שלך!
+
+    steps:
+      - name: Say Hello from my Mac
+        run: |
+          echo "🚀 הצינור רץ בהצלחה על המחשב המקומי שלי!"
+          whoami
+          pwd
+
+      - name: Check Docker version (אם יש)
+        run: docker --version
