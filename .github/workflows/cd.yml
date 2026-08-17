@@ -48,15 +48,15 @@ jobs:
           # חיבור ה-ngrok באמצעות הטוקן האישי
           ngrok config add-authtoken $NGROK_AUTH_TOKEN
           
-          # הפעלת ngrok ברקע ושמירת הלוגים
+          # הפעלת ngrok ושמירת כל הלוגים לקובץ
           ngrok http 80 > ngrok.log 2>&1 &
           
-          # ממתינים 6 שניות כדי לוודא ש-ngrok התחבר בהצלחה לענן
+          # ממתינים 6 שניות כדי לוודא ש-ngrok התחבר לענן ויצר כתובת
           sleep 6
           
-          echo "🔗 Attempting to fetch public URL from Ngrok API:"
-          # שליפה ישירה של הכתובת מתוך ה-API המקומי של ngrok
-          curl -s http://127.0.0.1:4040/api/tunnels | grep -o 'https://[^"]*ngrok-free.app' || cat ngrok.log
+          echo "🔗 Printing full Ngrok logs to find your public URL:"
+          # הצגה מלאה של קובץ הלוג כדי לראות את הכתובת מול העיניים
+          cat ngrok.log
           
           echo "⏳ The environment is live! You have 5 minutes to test it from your phone."
           
